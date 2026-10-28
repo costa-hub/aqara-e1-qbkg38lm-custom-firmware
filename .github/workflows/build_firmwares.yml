@@ -1,0 +1,54 @@
+name: Build firmware
+# Build check only. Release images are flashed and tested on hardware before they are attached to a release by hand.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VENV_DIR: /tmp/venv
+      TOOLCHAIN_DIR: /opt/arm-none-eabi
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+            ca-certificates \
+            wget \
+            xz-utils \
+            make \
+            cmake
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Setup Python environment
+        run: |
+          uv python install 3.14
+          uv venv -p 3.14 "${VENV_DIR}"
+          uv --directory "${VENV_DIR}" pip install lxml
+
+      - name: Download toolchain
+        run: |
+          TOOLCHAIN_ARCH=x86_64
+          TOOLCHAIN_VERSION=14.2.rel1
+          TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu/${TOOLCHAIN_VERSION}/binrel/arm-gnu-toolchain-${TOOLCHAIN_VERSION}-${TOOLCHAIN_ARCH}-arm-none-eabi.tar.xz"
+          mkdir -p ${TOOLCHAIN_DIR}
+          wget -qO- ${TOOLCHAIN_URL} | tar xJ --strip-components=1 -C ${TOOLCHAIN_DIR}
+          echo "${TOOLCHAIN_DIR}/bin" >> $GITHUB_PATH
+
+      - name: Build QBKG38LM
+        run: |
+          cmake -S . -B build --preset QBKG38LM -DBUILD_DATE=$(date -u +%Y%m%d)
+          cmake --build build
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: QBKG38LM-firmware
+          path: firmwares/QBKG38LM/*.bin

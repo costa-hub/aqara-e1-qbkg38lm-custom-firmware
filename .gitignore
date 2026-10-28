@@ -1,0 +1,8 @@
+build/
+dist/
+firmwares/**/*.bin
+
+.cache
+.DS_Store
+.vscode
+compile_commands.json

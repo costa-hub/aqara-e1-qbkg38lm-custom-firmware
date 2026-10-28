@@ -1,0 +1,38 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 1
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "CMakeToolchain.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "QBKG38LM",
+            "displayName": "QBKG38LM",
+            "description": "Configure build for QBKG38LM",
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET": "QBKG38LM"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "QBKG38LM",
+            "configuration": "Release",
+            "configurePreset": "QBKG38LM",
+            "description": "Build binary firmware QBKG38LM",
+            "targets": "QBKG38LM.bin"
+        }
+    ]
+}
